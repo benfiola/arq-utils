@@ -5,7 +5,7 @@ Utilities around [arq](https://arq-docs.helpmanual.io/) intended to streamline w
 ## Quickstart
 
 ```python3
-from arq_utils import RedisSettings, Registry, Schedule
+from arq_utils import Registry, Schedule
 from enum import Enum
 
 
@@ -19,8 +19,8 @@ class Queue(Enum):
 registry = Registry(
     Queue.Default,
     automatic_job_id=True,
+    expire_completed_tasks_on_requeue=True, 
     graceful_termination=True,
-    reenqueue_complete_tasks=True,
 )
 
 
@@ -28,22 +28,24 @@ registry = Registry(
 Worker = registry.worker_class()
 create_pool = registry.create_pool
 enqueue_task = registry.enqueue_task
+task = registry.task
+schedule = registry.schedule
 
 
-# register "task" as a task function
-@registry.task
-async def task(a: int):
+# register "sample" as a task function
+@task
+async def sample(a: int):
     print(a)
 
 
 # scheduled tasks
-# register "task_two" as a task function
-# schedule "task_two" to run every minute with b set to "one" on queue "other"
-# schedule "task_two" to run every hour with b set to "two" on the default queue
-@registry.task
-@registry.schedule(Schedule.cron("* * * * *"), arguments={"b": "one"}, queue=Queue.Other)
-@registry.schedule(Schedule.cron("0 * * * *"), arguments={"b": "two"})
-async def task_two(b: str):
+# register "sample_two" as a task function
+# schedule "sample_two" to run every minute with b set to "one" on queue "other"
+# schedule "sample_two" to run every hour with b set to "two" on the default queue
+@task
+@schedule(Schedule.cron("* * * * *"), arguments={"b": "one"}, queue=Queue.Other)
+@schedule(Schedule.cron("0 * * * *"), arguments={"b": "two"})
+async def sample_two(b: str):
     print(b)
 
 
@@ -70,8 +72,8 @@ async def as_worker():
 * Queue aware `Worker` class and `enqueue_task` typed interface
 * `Worker` class capable of listening to multiple queues at once
 
-## Optional
+## Options
 
 * `automatic_job_id`: When set to `True`, hashes the function name and input arguments to generate a job id for all enqueued tasks.  Assumes that all tasks should be unique as a function of function + input arguments.  (Requires `pydantic` to create hash)
+* `expire_completed_tasks_on_requeue`: When set to `True`, will forcefully expire completed tasks for `job_id` prior to enqueueing a new task with `job_id`.  This enables `job_id` to _only_ deduplicate on pending and in-progress tasks (and not completed tasks).
 * `graceful_termination`: When set to `True`, cancels and awaits all running tasks prior to terminating a `Worker`.  This allows task functions to perform cleanup on task cancellation prior to worker shutdown - but assumes cooperative task function implementation.
-* `reenqueue_complete_tasks`: When set to `True`, will forcefully expire completed tasks for `job_id` prior to enqueueing a new task with `job_id`.  This enables `job_id` to _only_ deduplicate on pending and in-progress tasks (and not completed tasks).

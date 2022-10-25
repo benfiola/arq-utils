@@ -150,8 +150,8 @@ R_RV = TypeVar("R_RV")
 class Registry(Generic[R_Queue]):
     automatic_job_id: bool
     default_queue: R_Queue
+    expire_completed_tasks_on_requeue: bool
     graceful_termination: bool
-    reenqueue_complete_tasks: bool
     scheduled_tasks: list[ScheduledTask[R_Queue]]
     task_function_import_paths: list[str]
 
@@ -159,13 +159,13 @@ class Registry(Generic[R_Queue]):
         self,
         default_queue: R_Queue,
         automatic_job_id: bool = False,
+        expire_completed_tasks_on_requeue: bool = False,
         graceful_termination: bool = False,
-        reenqueue_complete_tasks: bool = False,
     ):
         self.automatic_job_id = automatic_job_id
         self.default_queue = default_queue
         self.graceful_termination = graceful_termination
-        self.reenqueue_complete_tasks = reenqueue_complete_tasks
+        self.expire_completed_tasks_on_requeue = expire_completed_tasks_on_requeue
         self.scheduled_tasks = []
         self.task_function_import_paths = []
 
@@ -275,7 +275,7 @@ class ArqRedisWrapper(arq.connections.ArqRedis):
         return getattr(self.__wrapped, attr)
 
     async def enqueue_job(self, *args, **kwargs):
-        if self.__registry.reenqueue_complete_tasks:
+        if self.__registry.expire_completed_tasks_on_requeue:
             if job_id := kwargs.get("_job_id"):
                 async with self.__wrapped.pipeline(transaction=True) as pipeline:
                     result_key = arq.constants.result_key_prefix + job_id
