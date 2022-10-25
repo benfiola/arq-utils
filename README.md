@@ -44,7 +44,7 @@ async def task(a: int):
 @registry.schedule(Schedule.cron("* * * * *"), arguments={"b": "one"}, queue=Queue.Other)
 @registry.schedule(Schedule.cron("0 * * * *"), arguments={"b": "two"})
 async def task_two(b: str):
-    print(a)
+    print(b)
 
 
 
