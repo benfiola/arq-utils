@@ -148,13 +148,12 @@ R_RV = TypeVar("R_RV")
 
 
 class Registry(Generic[R_Queue]):
-    default_queue: R_Queue
-    scheduled_tasks: list[ScheduledTask]
-    task_function_import_paths: list[str]
-
     automatic_job_id: bool
+    default_queue: R_Queue
     graceful_termination: bool
     reenqueue_complete_tasks: bool
+    scheduled_tasks: list[ScheduledTask[R_Queue]]
+    task_function_import_paths: list[str]
 
     def __init__(
         self,
@@ -163,8 +162,8 @@ class Registry(Generic[R_Queue]):
         graceful_termination: bool = False,
         reenqueue_complete_tasks: bool = False,
     ):
-        self.default_queue = default_queue
         self.automatic_job_id = automatic_job_id
+        self.default_queue = default_queue
         self.graceful_termination = graceful_termination
         self.reenqueue_complete_tasks = reenqueue_complete_tasks
         self.scheduled_tasks = []
