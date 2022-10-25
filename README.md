@@ -72,6 +72,6 @@ async def as_worker():
 
 ## Optional
 
-* `automatic_job_id`: When set to `True`, hashes the function name and input arguments to generate a job id for all enqueued tasks.  Assumes that all tasks should be unique as a function of function + input arguments.
+* `automatic_job_id`: When set to `True`, hashes the function name and input arguments to generate a job id for all enqueued tasks.  Assumes that all tasks should be unique as a function of function + input arguments.  (Requires `pydantic` to create hash)
 * `graceful_termination`: When set to `True`, cancels and awaits all running tasks prior to terminating a `Worker`.  This allows task functions to perform cleanup on task cancellation prior to worker shutdown - but assumes cooperative task function implementation.
 * `reenqueue_complete_tasks`: When set to `True`, will forcefully expire completed tasks for `job_id` prior to enqueueing a new task with `job_id`.  This enables `job_id` to _only_ deduplicate on pending and in-progress tasks (and not completed tasks).
