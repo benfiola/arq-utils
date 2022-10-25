@@ -1,0 +1,12 @@
+.vscode
+*.code-workspace
+
+*.pyc
+*.egg-info
+__pycache__
+
+/*
+!/.gitignore
+!/README.md
+!/setup.py
+!/arq_utils
